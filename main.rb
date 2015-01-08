@@ -25,9 +25,13 @@ for i in file
 			#end
 			red_1 = line.gsub(/\t/,"").gsub(/ /,"").split("(")
 			#parse << line.gsub(/\t/,"").gsub(/ /,"").gsub(/\n/,"")
-			if red_1[0] == "if"
-				inblock = true
-				puts line
+			if inblock == false
+				if red_1[0] == "if"
+					inblock = true
+					puts line
+				end
+			end
+			if inblock
 				line.each_char do |c|
 					if c.eql?("{")
 						$i+=1
@@ -35,8 +39,12 @@ for i in file
 						$i-=1
 					end
 				end
+				if $i==0
+					inblock = false
+					puts "BLOCK ENDED"
+				end
 			end
-			puts $i
+			#puts $i
 		end
 	end
 end 
