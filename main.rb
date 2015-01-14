@@ -42,8 +42,6 @@ for i in file
 				line.each_char do |c|
 					if c.eql?("{") && line.start_with?("{") == false
 						$i+=1
-					elsif line.start_with?("else") || line.start_with?("elseif")
-						$i+=1
 					elsif c.eql?("}")	 	 
 						$i-=1
 					end
