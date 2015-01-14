@@ -12,6 +12,7 @@ inblock = false
 
 #looping through all files
 for i in file
+	Dir.chdir("#{ARGV[0]}")
 	print "editing file : " + i + " "
 	ex = i.split(".")[0..1]
 	if ex[1]!= "c"
@@ -58,10 +59,15 @@ for i in file
 			#puts $i
 		end
 	end
-	File.open("#{i}_results.txt","w") do |line|
+	puts "File : " + i + "  ENDED EDITING  "
+	if File.exist?("#{ARGV[0]}/results") == false
+		Dir.mkdir("/#{ARGV[0]}/results")
+	end
+	Dir.chdir("#{ARGV[0]}/results")
+	File.open("(#{i})results.txt","w") do |line|
 		line << sub
 	end
-	puts "File : " + i + "  ENDED EDITING  "
+
 	parse.clear
 	sub.clear
 end 
