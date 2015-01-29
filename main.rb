@@ -30,18 +30,23 @@ for i in file
 		File.open("#{i}").each do |line|
 			parse << line.gsub(/\t/,"").gsub(/ /,"").gsub(/\n/,"")
 		end
+		puts "---------------" + inblock.to_s
 		parse.each do |line|
 			if line.start_with?("int") || line.start_with?("double") || line.start_with?("void") ||
 				 line.start_with?("char") || line.start_with?("float")
 				 type = true
 			end
 			red_1 = line.split("(")
-			if type == true
-				if red_1[0]!= "int" && red_1[0]!= "double" && red_1[0]!= "void" &&
-					red_1[0]!= "char" && red_1[0]!= "float"
-					infunc = true
+			red_2 = line.split(")")
+			#p $i
+			if type
+				if red_1[0]!= "intmain" && red_1[1]!= nil
+					inblock = true
 					type = false
-					puts line
+					$lines+=1
+					if red_2[1] == nil
+						$i+=1
+					end
 				end
 			end
 			if red_1[0] == "if"
@@ -49,15 +54,13 @@ for i in file
 				if inblock == false
 					inblock = true
 				end
-				red_2 = line.split(")")
 				if red_2[1] == nil
 					$i+=1
 				end
 			end
 			if infunc
-				lines +=1
+				$lines +=1
 			end
-
 			if inblock
 				puts line
 				line.each_char do |c|
@@ -77,6 +80,9 @@ for i in file
 					$c=0
 				end
 			end
+			type = false
+			red_2.clear
+			red_1.clear
 			#puts $i
 		end
 	end
