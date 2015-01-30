@@ -9,6 +9,8 @@ parse = Array.new()
 $lines=0
 $c=0
 $i=0
+$f=0
+$b_f=0
 inblock = false
 infunc = false
 type = false
@@ -42,7 +44,7 @@ for i in file
 			if type
 				if red_1[0]!= "intmain" && red_1[1]!= nil
 					inblock = true
-					type = false
+					infunc = true
 					$lines+=1
 					if red_2[1] == nil
 						$i+=1
@@ -58,11 +60,12 @@ for i in file
 					$i+=1
 				end
 			end
-			if infunc
-				$lines +=1
-			end
+
 			if inblock
 				puts line
+				if infunc
+					$lines+=1
+				end
 				line.each_char do |c|
 					if c.eql?("{") && line.start_with?("{") == false
 						$i+=1
@@ -74,10 +77,19 @@ for i in file
 					inblock = false
 					if $c > 2
 						sub << "too complicated if constructions "
-						sub << "super duper"
 					end
 					puts "BLOCK ENDED"
+					puts $lines
 					$c=0
+					if infunc
+						if $lines > 5
+							$b_f+=1.0
+						else
+							$f+=1.0
+						end
+						$lines=0
+					end
+					infunc=false
 				end
 			end
 			type = false
@@ -86,12 +98,20 @@ for i in file
 			#puts $i
 		end
 	end
-	puts "File : " + i + "  ENDED EDITING  "
-	if File.exist?("#{ARGV[0]}/results") == false
-		Dir.mkdir("/#{ARGV[0]}/results")
+	if $f>0 || $b_f>0
+		if $f/$b_f >=1
+			sub << "50% of the functions are too big"
+		end
 	end
-	Dir.chdir("#{ARGV[0]}/results")
-	File.open("(#{i})results.txt","w") do |line|
+	$f=0
+	$b_f=0
+
+	puts "File : " + i + "  ENDED EDITING  "
+	if File.exist?("#{ARGV[0]}/homew_results") == false
+		Dir.mkdir("/#{ARGV[0]}/homew_results")
+	end
+	Dir.chdir("#{ARGV[0]}/homew_results")
+	File.open("(#{i})result.txt","w") do |line|
 		sub.each do |el|
 			line << el + "\n"
 		end
