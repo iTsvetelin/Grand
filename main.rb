@@ -7,6 +7,7 @@ puts "=================================="
 sub = Array.new()
 parse = Array.new()
 $lines=0
+$liness=0
 $c=0
 $i=0
 $f=0
@@ -45,9 +46,9 @@ for i in file
 				if red_1[0]!= "intmain" && red_1[1]!= nil
 					inblock = true
 					infunc = true
-					$lines+=1
 					if red_2[1] == nil
 						$i+=1
+						$lines-=1
 					end
 				end
 			end
@@ -64,7 +65,12 @@ for i in file
 			if inblock
 				puts line
 				if infunc
-					$lines+=1
+					if line!="" && line.start_with?("//") == false
+						$lines+=1
+						if $c==1
+							$liness+=1
+						end
+					end
 				end
 				line.each_char do |c|
 					if c.eql?("{") && line.start_with?("{") == false
@@ -79,7 +85,6 @@ for i in file
 						sub << "too complicated if constructions "
 					end
 					puts "BLOCK ENDED"
-					puts $lines
 					$c=0
 					if infunc
 						if $lines > 5
@@ -87,22 +92,35 @@ for i in file
 						else
 							$f+=1.0
 						end
+						if $lines - $liness == 1
+							sub << "there is a function which can be replaced with trinary operator"
+						end
 						$lines=0
+						$liness=0
 					end
 					infunc=false
 				end
 			end
+
 			type = false
 			red_2.clear
 			red_1.clear
 			#puts $i
 		end
 	end
-	if $f>0 || $b_f>0
-		if $f/$b_f >=1
+
+	if $f > 0 || $b_f >0
+		p $f/$b_f
+		if $f==0 && $b_f>0
+			sub << "50% of the functions are too big"
+		elsif $f/$b_f <=1.0
 			sub << "50% of the functions are too big"
 		end
 	end
+
+	#if $f/$b_f >=1
+		#sub << "50% of the functions are too big"
+	#end
 	$f=0
 	$b_f=0
 
