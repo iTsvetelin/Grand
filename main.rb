@@ -12,43 +12,48 @@ $c=0
 $i=0
 $f=0
 $b_f=0
+$count=0
 inblock = false
 infunc = false
-type = false
 inboth = false
 
 #looping through all files
 for i in file
 	Dir.chdir("#{ARGV[0]}")
-	print "editing file : " + i + " "
+	print "editing file : " + i
 	ex = i.split(".")[0..1]
 	if ex[1]!= "c"
 		puts " - this is not a C file"
 		next
 	else
-		puts "compiling "
-		`gcc #{i}`
-
+		puts " - compiling "
+		`gcc #{i} -W`
 		
 		File.open("#{i}").each do |line|
 			parse << line.gsub(/\t/,"").gsub(/ /,"").gsub(/\n/,"")
 		end
-		puts "---------------" + inblock.to_s
+
 		parse.each do |line|
-			if line.start_with?("int") || line.start_with?("double") || line.start_with?("void") ||
-				 line.start_with?("char") || line.start_with?("float")
-				 type = true
+			$count += 1
+			if line.length > 78
+				sub << "Lines should not exceed 78 characters @line" + $count.to_s
 			end
 			red_1 = line.split("(")
 			red_2 = line.split(")")
+			red_3 = line.split("[")
 			#p $i
-			if type
+			if line.start_with?("int") || line.start_with?("double") || line.start_with?("void") ||
+				 line.start_with?("char") || line.start_with?("float")
 				if red_1[0]!= "intmain" && red_1[1]!= nil
 					inblock = true
 					infunc = true
 					if red_2[1] == nil
 						$i+=1
 						$lines-=1
+					end
+				elsif red_1[0]!= "intmain" && red_1[1]== nil && red_3[1]== nil
+					if line.downcase! != nil
+						sub << "wrong variable naming @line" + $count.to_s
 					end
 				end
 			end
@@ -63,7 +68,7 @@ for i in file
 			end
 
 			if inblock
-				puts line
+				#puts line
 				if infunc
 					if line!="" && line.start_with?("//") == false
 						$lines+=1
@@ -82,9 +87,9 @@ for i in file
 				if $i==0
 					inblock = false
 					if $c > 2
-						sub << "too complicated if constructions "
+						sub << "too complicated if construction"
 					end
-					puts "BLOCK ENDED"
+					#puts "BLOCK ENDED"
 					$c=0
 					if infunc
 						if $lines > 5
@@ -102,7 +107,6 @@ for i in file
 				end
 			end
 
-			type = false
 			red_2.clear
 			red_1.clear
 			#puts $i
@@ -110,7 +114,7 @@ for i in file
 	end
 
 	if $f > 0 || $b_f >0
-		p $f/$b_f
+		#p $f/$b_f
 		if $f==0 && $b_f>0
 			sub << "50% of the functions are too big"
 		elsif $f/$b_f <=1.0
@@ -124,6 +128,7 @@ for i in file
 	$f=0
 	$b_f=0
 
+
 	puts "File : " + i + "  ENDED EDITING  "
 	if File.exist?("#{ARGV[0]}/homew_results") == false
 		Dir.mkdir("/#{ARGV[0]}/homew_results")
@@ -134,7 +139,7 @@ for i in file
 			line << el + "\n"
 		end
 	end
-
+	$count=0
 	parse.clear
 	sub.clear
 end 
