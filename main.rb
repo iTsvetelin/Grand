@@ -6,6 +6,7 @@ puts file
 puts "=================================="
 sub = Array.new()
 parse = Array.new()
+#complie = Array.new()
 $lines=0
 $liness=0
 $c=0
@@ -16,6 +17,8 @@ $count=0
 inblock = false
 infunc = false
 inboth = false
+$r_brackets =0
+$w_brackets =0
 
 #looping through all files
 for i in file
@@ -27,6 +30,7 @@ for i in file
 		next
 	else
 		puts " - compiling "
+
 		`gcc #{i} -W`
 		
 		File.open("#{i}").each do |line|
@@ -42,6 +46,14 @@ for i in file
 			red_2 = line.split(")")
 			red_3 = line.split("[")
 			#p $i
+			if line == ("{")
+				$w_brackets+=1.0
+			end
+			if line.end_with?("{")
+				if line != ("{")
+					$r_brackets+=1.0
+				end
+			end
 			if line.start_with?("int") || line.start_with?("double") || line.start_with?("void") ||
 				 line.start_with?("char") || line.start_with?("float")
 				if red_1[0]!= "intmain" && red_1[1]!= nil
@@ -113,20 +125,26 @@ for i in file
 		end
 	end
 
-	if $f > 0 || $b_f >0
-		#p $f/$b_f
-		if $f==0 && $b_f>0
-			sub << "50% of the functions are too big"
-		elsif $f/$b_f <=1.0
-			sub << "50% of the functions are too big"
-		end
+
+	if $f==0 && $b_f==0
+		sub << "there are no functions"
+	elsif $f>0 && $b_f==0
+		sub <<  "all functions are  fine"
+	elsif $f==0 && $b_f>0
+		sub << "all functions are too big"
+	elsif $f/$b_f <=1.0
+		sub << "50% of the functions are too big"
+	end
+	if $w_brackets ==0
+		sub << "all brackets are fine"
+	elsif $r_brackets/$w_brackets <=1.0
+		sub << "50% of the brackets are wrongly placed"
 	end
 
-	#if $f/$b_f >=1
-		#sub << "50% of the functions are too big"
-	#end
 	$f=0
 	$b_f=0
+	$w_brackets=0
+	$r_brackets=0
 
 
 	puts "File : " + i + "  ENDED EDITING  "
@@ -143,5 +161,4 @@ for i in file
 	parse.clear
 	sub.clear
 end 
-#p parse
 
