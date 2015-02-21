@@ -11,7 +11,8 @@ parse = Array.new()
 $lines=0
 $liness=0
 $if_count=0
-$block_count=0
+$logical_operators_count=0
+$brackets_count=0
 $normal_func=0
 $big_func=0
 $lines_count=0
@@ -61,7 +62,7 @@ for i in file
 					inblock = true
 					infunc = true
 					if red_2[1] == nil
-						$block_count+=1
+						$brackets_count+=1
 						$lines-=1
 					end
 				elsif red_1[0]!= "intmain" && red_1[1]== nil && red_3[1]== nil
@@ -71,12 +72,21 @@ for i in file
 				end
 			end
 			if red_1[0] == "if"
+				line.each_char do |char|
+					if char.eql?("&") || char.eql?("|")
+						$logical_operators_count+=1
+					end
+				end
+				if $logical_operators_count/2 > 0
+					info << "too complicated if condtion @line" + $lines_count.to_s
+				end
+				$logical_operators_count = 0
 				$if_count+=1
 				if inblock == false
 					inblock = true
 				end
 				if red_2[1] == nil
-					$block_count+=1
+					$brackets_count+=1
 				end
 			end
 
@@ -85,22 +95,22 @@ for i in file
 				if infunc
 					if line!="" && line.start_with?("//") == false
 						$lines+=1
-						if $if_count==1
+						if $if_count>0
 							$liness+=1
 						end
 					end
 				end
 				line.each_char do |c|
 					if c.eql?("{") && line.start_with?("{") == false
-						$block_count+=1
+						$brackets_count+=1
 					elsif c.eql?("}")	 	 
-						$block_count-=1
+						$brackets_count-=1
 					end
 				end
-				if $block_count==0
+				if $brackets_count==0
 					inblock = false
 					if $if_count > 2
-						info << "too complicated if construction"
+						info << "too many inbuilt if conditions"
 					end
 					#puts "BLOCK ENDED"
 					$if_count=0
@@ -111,7 +121,7 @@ for i in file
 							$normal_func+=1.0
 						end
 						if $lines - $liness == 1
-							info << "there is a function which can be replaced with trinary operator"
+							info << "there is a function which can be replaced with a trinary operator"
 						end
 						$lines=0
 						$liness=0
@@ -153,10 +163,10 @@ for i in file
 
 
 	puts "File : " + i + "  ENDED EDITING  "
-	if File.exist?("#{ARGV[0]}/homew_results") == false
-		Dir.mkdir("/#{ARGV[0]}/homew_results")
+	if File.exist?("#{ARGV[0]}/homework_results") == false
+		Dir.mkdir("/#{ARGV[0]}/homework_results")
 	end
-	Dir.chdir("#{ARGV[0]}/homew_results")
+	Dir.chdir("#{ARGV[0]}/homework_results")
 	File.open("(#{i})result.txt","w") do |line|
 		info.each do |el|
 			line << el + "\n"
