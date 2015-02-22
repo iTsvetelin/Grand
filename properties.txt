@@ -1,5 +1,5 @@
 camel case for variables = true
-logical operators per if = 1
+maxium logical operators per if = 1
 maximum inbuilt if statements = 5
 maximum lines per function = 30
 brackets ratio = 1.0
