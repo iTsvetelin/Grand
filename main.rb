@@ -4,13 +4,16 @@ File.open("#{file_directory}/properties.txt").each do |line|
 	red = line.gsub(/ /,"").gsub(/\n/,"").split("=")
 	value << red[1]
 end
+
 cc_variables = value[0]
 $max_logical_operators = value[1].to_i
 $max_if_count = value[2].to_i
 $max_lines_func = value[3].to_i
-$bracket_ratio = value[4].to_f
-$funcion_ratio = value[5].to_f
+$bad_bracket_ratio = value[4].to_f
+$bad_function_ratio = value[5].to_f
 $max_lines = value[6].to_i
+$max_lines_length = value[7].to_i
+$max_comentary_lines = value[8].to_i
 
 Dir.chdir("#{ARGV[0]}")
 puts Dir.pwd
@@ -33,6 +36,7 @@ inblock = false
 infunc = false
 $r_brackets =0
 $w_brackets =0
+$comentary_lines=0
 
 #looping through all files
 for i in file
@@ -52,10 +56,13 @@ for i in file
 		end
 
 		parse.each do |line|
-			$lines_count += 1
+			$lines_count +=1
+			if line.start_with?("//")
+				$comentary_lines+=1
+			end
 
-			if line.length > 78
-				info << "Lines should not exceed 78 characters @line" + $lines_count.to_s
+			if line.length > $max_lines_length
+				info << "Lines should not exceed "+ $max_lines_length.to_s + " characters @line" + $lines_count.to_s
 			end
 
 			red_1 = line.split("(")
@@ -117,7 +124,7 @@ for i in file
 				if infunc
 					if line!="" && line.start_with?("//") == false
 						$lines+=1
-						if $if_count>0
+						if $if_count==1
 							$liness+=1
 						end
 					end
@@ -161,26 +168,29 @@ for i in file
 	end
 
 
-	if $normal_func==0 && $big_func==0
+	if $normal_func+$big_func==0
 		info << "there are no functions"
 	elsif $normal_func>0 && $big_func==0
 		info <<  "all functions are  fine"
 	elsif $normal_func==0 && $big_func>0
 		info << "all functions are too big"
-	elsif $normal_func/$big_func <=1.0						# <-=======================
-		info << "50% of the functions are too big"
+	elsif $big_func/($normal_func+$big_func)>=$bad_function_ratio
+		info << "too many bad functions" 
 	end
 
 	if $w_brackets ==0
 		info << "all brackets are fine"
-	elsif $r_brackets/$w_brackets <=1.0						# <-=======================
-		info << "50% of the brackets are wrongly placed"
+	elsif $w_brackets/($r_brackets+$w_brackets)>=$bad_bracket_ratio
+		info << "too many bad brackets"
 	end
 
 	first_info << "source code is total of " + $lines_count.to_s + " lines"
 
 	if $lines_count > $max_lines
-		info << "the source code is too big"
+		first_info << "the source code is too big"
+	end
+	if $comentary_lines > $max_comentary_lines
+		first_info << "too many comentary lines"
 	end
 
 	$normal_func=0
@@ -195,11 +205,15 @@ for i in file
 	end
 	Dir.chdir("#{ARGV[0]}/homework_results")
 	File.open("(#{i})result.txt","w") do |line|
+		first_info.each do |el|
+			line << el + "\n"
+		end
 		info.each do |el|
 			line << el + "\n"
 		end
 	end
 	$lines_count=0
+	$comentary_lines=0
 	parse.clear
 	info.clear
 	first_info.clear
